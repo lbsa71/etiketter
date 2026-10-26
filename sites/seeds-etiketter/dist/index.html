@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#24584f">
+  <meta name="description" content="Skapa färgkodade SEEDS-etiketter som PDF. 24 studienummer per A4-ark, med val av provtyp och provtagning.">
+  <title>SEEDS etiketter</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2324584f'/%3E%3Cpath d='M15 18h34v9H15zm0 19h34v9H15z' fill='%23d4ebc7'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="vendor/jspdf.umd.min.js" defer></script>
+  <script src="labels.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="SEEDS etiketter, startsida"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>SEEDS <span>etiketter</span></a>
+    <span class="stock-info">A4 <span aria-hidden="true">/</span> 3 × 8 etiketter</span>
+  </header>
+  <main>
+    <section class="workspace" aria-labelledby="page-title">
+      <div class="controls">
+        <div class="intro">
+          <h1 id="page-title">Dina nästa<br>24 etiketter.</h1>
+          <p>Fyll i första studienumret, välj vilka ark du behöver och hämta en färdig PDF.</p>
+        </div>
+        <form id="label-form" novalidate>
+          <div class="number-section">
+            <label class="field-label" for="start-number">Första studienummer</label>
+            <input id="start-number" name="start-number" type="text" inputmode="numeric" pattern="[0-9]+" value="001" autocomplete="off" spellcheck="false" aria-describedby="number-help number-error">
+            <p id="number-help" class="number-help">Varje valt ark får 24 etiketter: <strong id="number-range">001–024</strong>.</p>
+            <p class="detail">Numreringen börjar med ditt startnummer och fortsätter med ett nummer per etikett. Alla valda ark använder samma nummerintervall.</p>
+            <p id="number-error" class="error" role="alert" hidden></p>
+          </div>
+          <div class="selection-heading"><h2>Välj ark</h2><button id="toggle-all" type="button" class="text-button">Avmarkera alla</button></div>
+          <div id="sheet-groups"></div>
+          <div class="download-section">
+            <p id="selection-summary" class="selection-summary" aria-live="polite"></p>
+            <button id="download" class="primary-button" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 16v5h14v-5"/></svg><span>Hämta PDF</span></button>
+            <p id="download-status" class="download-status" role="status"></p>
+          </div>
+        </form>
+        <aside class="print-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4V8h16v9h-3M7 13h10v8H7zM17 10h.01"/></svg><div><h2>När du skriver ut</h2><p>Välj A4, enkelsidigt och <strong>100 % / verklig storlek</strong>. Stäng av ”Anpassa till sida”. Varje etikett har 5 mm vit kant runt den färgade ytan.</p></div></aside>
+      </div>
+      <section class="preview-panel" aria-labelledby="preview-heading">
+        <div class="preview-toolbar"><div><h2 id="preview-heading">Förhandsvisning</h2><p id="preview-description">Ett ark med 24 etiketter</p></div><button id="zoom" type="button" class="zoom-button" aria-pressed="false">Visa en etikett</button></div>
+        <label class="preview-select-label" for="preview-sheet">Visa ark</label>
+        <select id="preview-sheet"></select>
+        <div class="paper-stage"><div id="preview" class="paper"></div><p id="preview-empty" class="preview-empty" hidden>Välj minst ett ark för att se förhandsvisningen.</p></div>
+        <p class="preview-footnote">70 × 37,125 mm per etikett. Numren löper uppifrån och ned i varje kolumn.</p>
+      </section>
+    </section>
+    <section class="how-it-works" aria-labelledby="how-heading"><h2 id="how-heading">Från startnummer till färdiga ark</h2><div class="instructions"><p><strong>1. Ange startnumret.</strong> Till exempel ger 025 etiketterna 025–048. Varje valt ark innehåller exakt 24 etiketter.</p><p><strong>2. Välj dina ark.</strong> Kryssa i de provtyper du vill skriva ut. EDTA och Serum har separata ark för 1. provtagning före inkludering och 2. provtagning efter inkludering.</p><p><strong>3. Hämta och skriv ut.</strong> PDF:en får en sida per valt ark. Färgerna och den vita kanten ingår. Datum och klockslag fyller du i för hand.</p></div></section>
+  </main>
+  <footer>SEEDS etikettverktyg <span>PDF:en skapas här i din webbläsare.</span></footer>
+</body>
+</html>
