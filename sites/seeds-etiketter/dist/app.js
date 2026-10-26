@@ -55,7 +55,7 @@
     $('preview-empty').hidden = valid && Boolean(ids.length);
     $('preview-empty').textContent = !valid ? 'Ange ett giltigt startnummer för att se etiketterna.' :
       'Välj minst ett ark för att se förhandsvisningen.';
-    $('selection-summary').textContent = ids.length ? ids.length + (ids.length === 1 ? ' ark' : ' ark') +
+    $('selection-summary').textContent = ids.length ? ids.length + ' ark' +
       ' · ' + ids.length * 24 + ' etiketter · ' + ids.length + (ids.length === 1 ? ' PDF-sida' : ' PDF-sidor') :
       'Välj minst ett ark att skriva ut.';
     $('toggle-all').textContent = ids.length === api.SHEETS.length ? 'Avmarkera alla' : 'Välj alla';

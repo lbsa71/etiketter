@@ -1,0 +1,10 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const labels = require('../dist/labels.js');
+const { jsPDF } = require('../dist/vendor/jspdf.umd.min.js');
+const directory = path.resolve(__dirname, '../tmp/pdfs');
+fs.mkdirSync(directory, { recursive: true });
+const doc = labels.createPdf({ startNumber: 25, sheetIds: labels.SHEETS.map(s => s.id) }, jsPDF);
+const file = path.join(directory, 'SEEDS_025-048_all.pdf');
+fs.writeFileSync(file, Buffer.from(doc.output('arraybuffer')));
+console.log(file);

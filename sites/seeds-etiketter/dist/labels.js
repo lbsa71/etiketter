@@ -1,14 +1,17 @@
 (function (root, factory) {
-  const api = factory();
+  const api = factory(typeof module === 'object' && module.exports
+    ? require('./fonts/carlito-bold.js') : root.SeedsLabelFont);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SeedsLabels = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (font) {
   'use strict';
 
   // Physical label stock is the authority. Never shrink this grid to printer margins.
   const PAGE = Object.freeze({ width: 210, height: 297, columns: 3, rows: 8,
     labelWidth: 70, labelHeight: 297 / 8, border: 5, count: 24 });
   const MAX_START = 999976;
+  const TEXT = Object.freeze({ x: 7, firstBaseline: 9.2, lineHeight: 4.1,
+    size: 10, bold: true, align: 'left', maxWidth: 56 });
   const SHEETS = Object.freeze([
     { id: 'edta-1', name: 'EDTA', group: 'before', sampling: 1, color: '#CDA8E0' },
     { id: 'serum-1', name: 'Serum', group: 'before', sampling: 1, color: '#FFF2B3' },
@@ -36,7 +39,7 @@
   }
   function getSheet(id) {
     const sheet = SHEETS.find(item => item.id === id);
-    if (!sheet) throw new Error('Okänd arkt yp.'.replace('arkt yp', 'arktyp'));
+    if (!sheet) throw new Error('Okänd arktyp.');
     return sheet;
   }
   function selection(sheetIds) {
@@ -47,14 +50,16 @@
     return SHEETS.filter(sheet => chosen.has(sheet.id));
   }
   function labelLines(sheet, number) {
+    // The reference labels use one consistent size, weight and left edge.
     return [
-      { text: 'Klinisk Mikrobiologi-provmottagning', y: 8.7, size: 7, bold: false },
-      { text: 'SEEDS studien', y: 12.4, size: 8, bold: false },
-      { text: 'Studie ID. ' + formatStudyNumber(number), y: 17.4, size: 11, bold: true },
-      { text: (sheet.sampling ? sheet.sampling + '. provtagning ' : '') + sheet.name,
-        y: 22.0, size: 9, bold: true },
-      { text: sheet.dateLabel, y: 27.0, size: 7.5, bold: false }
-    ];
+      'Klinisk Mikrobiologi-provmottagning',
+      'SEEDS studien',
+      'Studie ID. ' + formatStudyNumber(number),
+      (sheet.sampling ? sheet.sampling + '. provtagning ' : '') + sheet.name,
+      sheet.dateLabel
+    ].map((text, index) => ({ text, x: TEXT.x,
+      y: TEXT.firstBaseline + index * TEXT.lineHeight,
+      size: TEXT.size, bold: TEXT.bold, align: TEXT.align }));
   }
   function labelPositions(startNumber) {
     const start = validateStart(startNumber);
@@ -71,6 +76,9 @@
     if (!Constructor) throw new Error('PDF-biblioteket kunde inte läsas in. Ladda om sidan.');
     const doc = new Constructor({ orientation: 'portrait', unit: 'mm',
       format: [PAGE.width, PAGE.height], precision: 6, compress: true });
+    if (!font) throw new Error('Etikettens typsnitt kunde inte läsas in. Ladda om sidan.');
+    doc.addFileToVFS(font.fileName, font.data);
+    doc.addFont(font.fileName, font.family, 'bold');
     doc.setProperties({ title: 'SEEDS etiketter ' + formatStudyNumber(start) + '-' +
       formatStudyNumber(start + 23), subject: '24 etiketter per A4-ark', creator: 'SEEDS etikettverktyg' });
     doc.viewerPreferences({ PrintScaling: 'None', Duplex: 'Simplex' });
@@ -82,12 +90,12 @@
         doc.rect(pos.x + PAGE.border, pos.y + PAGE.border,
           PAGE.labelWidth - PAGE.border * 2, PAGE.labelHeight - PAGE.border * 2, 'F');
         for (const line of labelLines(sheet, pos.number)) {
-          doc.setFont('helvetica', line.bold ? 'bold' : 'normal');
+          doc.setFont(font.family, 'bold');
           doc.setFontSize(line.size);
           // Fail visibly rather than quietly emitting text outside its label.
-          if (doc.getTextWidth(line.text) > PAGE.labelWidth - 14)
+          if (doc.getTextWidth(line.text) > TEXT.maxWidth)
             throw new Error('Etikettexten är för bred för etiketten.');
-          doc.text(line.text, pos.x + PAGE.labelWidth / 2, pos.y + line.y, { align: 'center' });
+          doc.text(line.text, pos.x + line.x, pos.y + line.y, { align: line.align });
         }
       }
     });
@@ -100,13 +108,17 @@
   function createPreviewSvg({ startNumber, sheetId }) {
     const sheet = getSheet(sheetId);
     const labels = labelPositions(startNumber).map(pos => '<g transform="translate(' +
-      pos.x + ' ' + pos.y + ')"><rect x="5" y="5" width="60" height="27.125" fill="' +
+      pos.x + ' ' + pos.y + ')"><rect x="' + PAGE.border + '" y="' + PAGE.border +
+      '" width="' + (PAGE.labelWidth - PAGE.border * 2) + '" height="' +
+      (PAGE.labelHeight - PAGE.border * 2) + '" fill="' +
       sheet.color + '"/>' + labelLines(sheet, pos.number).map(line =>
-      '<text x="35" y="' + line.y + '" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"' +
+      '<text x="' + line.x + '" y="' + line.y + '" text-anchor="start" font-family="SeedsLabelCarlito"' +
       ' font-size="' + line.size * 25.4 / 72 + '" font-weight="' + (line.bold ? '700' : '400') +
       '">' + escapeXml(line.text) + '</text>').join('') + '</g>').join('');
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 297" role="img"' +
       ' aria-label="Förhandsvisning av ' + escapeXml(sheetTitle(sheet)) + '">' +
+      '<style>@font-face{font-family:SeedsLabelCarlito;src:url(data:font/ttf;base64,' +
+      font.data + ') format("truetype");font-weight:700;font-style:normal}</style>' +
       '<rect width="210" height="297" fill="white"/>' + labels + '</svg>';
   }
   function fileName({ startNumber, sheetIds }) {
@@ -115,6 +127,6 @@
     return 'SEEDS_' + formatStudyNumber(start) + '-' + formatStudyNumber(start + 23) +
       (sheets.length === 1 ? '_' + sheets[0].id : '') + '.pdf';
   }
-  return Object.freeze({ PAGE, MAX_START, SHEETS, validateStart, formatStudyNumber,
+  return Object.freeze({ PAGE, TEXT, MAX_START, SHEETS, validateStart, formatStudyNumber,
     sheetTitle, labelLines, labelPositions, createPdf, createPreviewSvg, fileName });
 });
