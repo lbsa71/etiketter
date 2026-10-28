@@ -1,5 +1,10 @@
 # SEEDS etiketter
 
+> **Projektet har flyttat.** Använd [verktyget på GitHub Pages](https://lbsa71.github.io/etiketter/).
+> Källkod, dokumentation, tester och Word-referenser underhålls nu i
+> [lbsa71/lbsa71.github.io, underkatalogen etiketter](https://github.com/lbsa71/lbsa71.github.io/tree/master/etiketter).
+> Det här repot arkiverades den 28 oktober 2026 och behålls som historik. Gör fortsatta ändringar i det nya repot.
+
 Ett litet webbläsarverktyg som skapar färgkodade provetiketter som PDF för SEEDS-studien. Det ersätter manuell redigering av studienummer i Word.
 
 ## Använd verktyget
